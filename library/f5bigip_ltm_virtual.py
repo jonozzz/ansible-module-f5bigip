@@ -168,6 +168,9 @@ options:
     source:
         description:
             - Specifies an IP address or network from which the virtual server will accept traffic.
+    source_address_translation:
+        description:
+            - Specifies the type of source address translation enabled for the virtual server as well as the pool that the source address translation will use.
     source_port:
         description:
             - Specifies whether the system preserves the source port of the connection.
@@ -257,6 +260,7 @@ BIGIP_LTM_VIRTUAL_ARGS = dict(
     mask                        =    dict(type='str'),
     mirror                      =    dict(type='str', choices=['disabled', 'enabled', 'none']),
     nat64                       =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
+    persist                     =    dict(type='list'),
     pool                        =    dict(type='str'),
     rate_class                  =    dict(type='str'),
     rate_limit                  =    dict(type='int'),
@@ -267,6 +271,7 @@ BIGIP_LTM_VIRTUAL_ARGS = dict(
     reject                      =    dict(type='bool'),
     rules                       =    dict(type='list'),
     source                      =    dict(type='str'),
+    source_address_translation  =    dict(type='dict'),
     source_port                 =    dict(type='str', choices=['change', 'preserve', 'preserve-strict']),
     traffic_classes             =    dict(type='list'),
     translate_address           =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
