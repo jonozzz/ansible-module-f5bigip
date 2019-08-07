@@ -201,7 +201,8 @@ class F5BigIpSysConfig(F5BigIpUnnamedObject):
             self._methods['exec_cmd'](command, **params)
             result['changed'] = True
         except Exception as exc:
-            raise AnsibleF5Error("Could not execute '" + command + "' command: " + exc.message)
+            raise
+            #raise AnsibleF5Error("Could not execute '" + command + "' command: " + exc.message)
 
         return result
 
