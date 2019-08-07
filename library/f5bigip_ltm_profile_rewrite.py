@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,7 +36,8 @@ options:
             - Specifies the name of the application service to which the object belongs.
     bypass_list:
         description:
-            - Specifies a list of URIs that are bypassesed inside a web page when the page is accessed using Portal Access.
+            - Specifies a list of URIs that are bypassesed inside a web page when the page is accessed using Portal
+              Access.
     client_caching_type:
         description:
             - Specifies one of four options for client caching.
@@ -64,12 +66,14 @@ options:
         default: default
     location_specific:
         description:
-            - Specifies whether or not this object contains one or more attributes with values that are specific to the location where the BIG-IP device resides.
+            - Specifies whether or not this object contains one or more attributes with values that are specific to the
+              location where the BIG-IP device resides.
         default: false
         choices: ['false', 'true']
     rewrite_list:
         description:
-            - Specifies a list of URIs that are rewritten inside a web page when the page is accessed using Portal Access.
+            - Specifies a list of URIs that are rewritten inside a web page when the page is accessed using Portal
+              Access.
     rewrite_mode:
         description:
             - Specifies the mode of rewriting.
@@ -89,9 +93,8 @@ options:
     uri_rules:
         description:
             - Used with uri-translation mode.
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -109,49 +112,65 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_LTM_PROFILE_REWRITE_ARGS = dict(
-    app_service                 =    dict(type='str'),
-    bypass_list                 =    dict(type='list'),
-    client_caching_type         =    dict(type='str', choices=['cache-all', 'cache-css-js', 'cache-img-css-js', 'no-cache']),
-    defaults_from               =    dict(type='str'),
-    java_ca_file                =    dict(type='str'),
-    java_crl                    =    dict(type='str'),
-    java_sign_key               =    dict(type='str'),
-    java_sign_key_passphrase    =    dict(type='str', no_log=True),
-    java_signer                 =    dict(type='str'),
-    location_specific           =    dict(type='str', choices=['false', 'true']),
-    rewrite_list                =    dict(type='list'),
-    rewrite_mode                =    dict(type='str', chocies=['portal', 'uri-translation']),
-    set_cookie_rules            =    dict(type='list'),
-    split_tunneling             =    dict(type='str', choices=['false', 'true']),
-    uri_rules                   =    dict(type='list')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            app_service=dict(type='str'),
+            bypass_list=dict(type='list'),
+            client_caching_type=dict(type='str', choices=['cache-all', 'cache-css-js', 'cache-img-css-js', 'no-cache']),
+            defaults_from=dict(type='str'),
+            java_ca_file=dict(type='str'),
+            java_crl=dict(type='str'),
+            java_sign_key=dict(type='str'),
+            java_sign_key_passphrase=dict(type='str', no_log=True),
+            java_signer=dict(type='str'),
+            location_specific=dict(type='str', choices=['false', 'true']),
+            rewrite_list=dict(type='list'),
+            rewrite_mode=dict(type='str', chocies=['portal', 'uri-translation']),
+            set_cookie_rules=dict(type='list'),
+            split_tunneling=dict(type='str', choices=['false', 'true']),
+            uri_rules=dict(type='list')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpLtmProfileRewrite(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.ltm.profile.rewrites.rewrite.create,
-            'read':     self.mgmt_root.tm.ltm.profile.rewrites.rewrite.load,
-            'update':   self.mgmt_root.tm.ltm.profile.rewrites.rewrite.update,
-            'delete':   self.mgmt_root.tm.ltm.profile.rewrites.rewrite.delete,
-            'exists':   self.mgmt_root.tm.ltm.profile.rewrites.rewrite.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.ltm.profile.rewrites.rewrite.create,
+            'read': self._api.tm.ltm.profile.rewrites.rewrite.load,
+            'update': self._api.tm.ltm.profile.rewrites.rewrite.update,
+            'delete': self._api.tm.ltm.profile.rewrites.rewrite.delete,
+            'exists': self._api.tm.ltm.profile.rewrites.rewrite.exists
         }
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_LTM_PROFILE_REWRITE_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpLtmProfileRewrite(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpLtmProfileRewrite(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

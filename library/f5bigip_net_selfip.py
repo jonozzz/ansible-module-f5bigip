@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +33,8 @@ author:
 options:
     address [ip address/netmask]:
         description:
-            - Specifies the IP address and netmask to be assigned to the system. Must appear in the format [ip address/mask].
+            - Specifies the IP address and netmask to be assigned to the system. Must appear in the format [ip
+              address/mask].
     allow_service:
         description:
             - Specifies the type of protocol/service that the VLAN handles.
@@ -63,9 +65,8 @@ options:
         description:
             - Specifies the VLAN for which you are setting a self IP address.
         default: traffic-group-local-only
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -84,51 +85,67 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_NET_SELFIP_ARGS = dict(
-    address             =   dict(type='str'),
-    allow_service       =   dict(type='list'),
-    app_service         =   dict(type='str'),
-    description         =   dict(type='str'),
-    fw_enforced_policy  =   dict(type='str'),
-    #fw_rules            =   dict(type='list'),
-    fw_staged_policy    =   dict(type='str'),
-    traffic_group       =   dict(type='str'),
-    vlan                =   dict(type='str')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            address=dict(type='str'),
+            allow_service=dict(type='list'),
+            app_service=dict(type='str'),
+            description=dict(type='str'),
+            fw_enforced_policy=dict(type='str'),
+            # fw_rules=dict(type='list'),
+            fw_staged_policy=dict(type='str'),
+            traffic_group=dict(type='str'),
+            vlan=dict(type='str')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpNetSelfip(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.net.selfips.selfip.create,
-            'read':     self.mgmt_root.tm.net.selfips.selfip.load,
-            'update':   self.mgmt_root.tm.net.selfips.selfip.update,
-            'delete':   self.mgmt_root.tm.net.selfips.selfip.delete,
-            'exists':   self.mgmt_root.tm.net.selfips.selfip.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.net.selfips.selfip.create,
+            'read': self._api.tm.net.selfips.selfip.load,
+            'update': self._api.tm.net.selfips.selfip.update,
+            'delete': self._api.tm.net.selfips.selfip.delete,
+            'exists': self._api.tm.net.selfips.selfip.exists
         }
 
     def _read(self):
-        selfip = self.methods['read'](
-            name=self.params['name'],
-            partition=self.params['partition']
+        selfip = self._methods['read'](
+            name=self._params['name'],
+            partition=self._params['partition']
         )
         selfip.vlan = self._strip_partition(selfip.vlan)
         return selfip
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_NET_SELFIP_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpNetSelfip(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpNetSelfip(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

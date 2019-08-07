@@ -1,0 +1,20 @@
+---
+
+- import_playbook: f5bigip_gtm_datacenter.yml
+- import_playbook: f5bigip_gtm_global_settings_general.yml
+- import_playbook: f5bigip_gtm_global_settings_load_balancing.yml
+- import_playbook: f5bigip_gtm_global_settings_metrics.yml
+- import_playbook: f5bigip_gtm_listener.yml
+- import_playbook: f5bigip_gtm_monitor_bigip.yml
+- import_playbook: f5bigip_gtm_monitor_ftp.yml
+- import_playbook: f5bigip_gtm_monitor_gateway_icmp.yml
+- import_playbook: f5bigip_gtm_monitor_http.yml
+- import_playbook: f5bigip_gtm_monitor_https.yml
+- import_playbook: f5bigip_gtm_monitor_tcp.yml
+- import_playbook: f5bigip_gtm_monitor_udp.yml
+- import_playbook: f5bigip_gtm_pool.yml
+- import_playbook: f5bigip_gtm_region.yml
+- import_playbook: f5bigip_gtm_rule.yml
+- import_playbook: f5bigip_gtm_server.yml
+- import_playbook: f5bigip_gtm_topology.yml
+- import_playbook: f5bigip_gtm_wideip.yml

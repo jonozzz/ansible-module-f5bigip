@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,7 +42,8 @@ options:
         choices: ['enabled', 'disabled']
     banner_text:
         description:
-            - When the banner option is enabled, specifies the text to include in the banner that displays when a user attempts to log on to the system.
+            - When the banner option is enabled, specifies the text to include in the banner that displays when a user
+              attempts to log on to the system.
     inactivity_timeout:
         description:
             - Specifies the number of seconds before inactivity causes an SSH session to log out.
@@ -55,15 +57,14 @@ options:
         description:
             - Specifies the minimum sshd message level to include in the system log.
         choices: ['debug', 'debug1', 'debug2', 'debug3', 'error', 'fatal', 'info', 'quiet', 'verbose']
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
 
 EXAMPLES = '''
-- name: Add SYS SSHD allow clients
+- name: Set SYS SSHD allow clients and banner
   f5bigip_sys_sshd:
     f5_hostname: 172.16.227.35
     f5_username: admin
@@ -72,47 +73,70 @@ EXAMPLES = '''
     allow:
       - 172.16.227.0/24
       - 10.0.0./8
-    state: present
+    banner: enabled
+    banner_text: "NOTICE: Improper use of this computer may result in prosecution!"
+  delegate_to: localhost
+
+- name: Reset SYS SSHD allow clients
+  f5bigip_sys_sshd:
+    f5_hostname: 172.16.227.35
+    f5_username: admin
+    f5_password: admin
+    f5_port: 443
+    allow:
+      - ALL
+      - 127.
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_ACTIVATION_CHOICES
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpUnnamedObject
 
-BIGIP_SYS_SSHD_ARGS = dict(
-    allow               =   dict(type='list'),
-    banner              =   dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    banner_text         =   dict(type='str'),
-    inactivity_timeout  =   dict(type='int'),
-    login               =   dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    log_level           =   dict(type='str', choices=['debug', 'debug1', 'debug2', 'debug3', 'error', 'fatal', 'info', 'quiet', 'verbose']),
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            allow=dict(type='list'),
+            banner=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            banner_text=dict(type='str'),
+            inactivity_timeout=dict(type='int'),
+            login=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            log_level=dict(type='str',
+                           choices=['debug', 'debug1', 'debug2', 'debug3', 'error', 'fatal', 'info', 'quiet',
+                                    'verbose'])
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpSysSshd(F5BigIpUnnamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'read':     self.mgmt_root.tm.sys.sshd.load,
-            'update':   self.mgmt_root.tm.sys.sshd.update
+    def _set_crud_methods(self):
+        self._methods = {
+            'read': self._api.tm.sys.sshd.load,
+            'update': self._api.tm.sys.sshd.update
         }
 
-    def _absent(self):
-        if not (self.params['allow']):
-            raise AnsibleF5Error("Absent can only be used when removing allow hostnames or IP addresses")
-
-        return super(F5BigIpSysSshd, self)._absent()
 
 def main():
-    module = AnsibleModuleF5BigIpUnnamedObject(argument_spec=BIGIP_SYS_SSHD_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpSysSshd(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpSysSshd(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

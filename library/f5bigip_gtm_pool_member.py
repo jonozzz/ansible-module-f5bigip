@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -97,9 +98,8 @@ options:
     vs_name:
         description:
             - Displays the name of the corresponding virtual server.
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -113,81 +113,84 @@ EXAMPLES = '''
     f5_port: 443
     name: 'my_server:my_vs1'
     partition: Common
-    pool: my_pool
+    pool: /Common/my_pool
     state: present
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_ACTIVATION_CHOICES
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 from f5.bigip.resource import OrganizingCollection
 
-BIGIP_GTM_POOL_MEMBER_ARGS = dict(
-    app_service                     =   dict(type='str'),
-    depends_on                      =   dict(type='list'),
-    description                     =   dict(type='str'),
-    disabled                        =   dict(type='bool'),
-    enabled                         =   dict(type='bool'),
-    limit_max_bps                   =   dict(type='int'),
-    limit_max_bps_status            =   dict(type='str', choices=[F5_ACTIVATION_CHOICES]),
-    limit_max_connections           =   dict(type='int'),
-    limit_max_connections_status    =   dict(type='str', choices=[F5_ACTIVATION_CHOICES]),
-    limit_max_pps                   =   dict(type='int'),
-    limit_max_pps_status            =   dict(type='str', choices=[F5_ACTIVATION_CHOICES]),
-    monitor                         =   dict(type='str', choices=[F5_ACTIVATION_CHOICES]),
-    pool                            =   dict(type='str'),
-    order                           =   dict(type='int'),
-    ratio                           =   dict(type='str', choices=[F5_ACTIVATION_CHOICES]),
-)
 
-class F5BigIpGtmPoolMember(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        if isinstance(self.mgmt_root.tm.gtm.pools, OrganizingCollection):
-            self.pool = self.mgmt_root.tm.gtm.pools.a_s.a.load(
-                name=self.params['pool'],
-                partition=self.params['partition']
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            app_service=dict(type='str'),
+            depends_on=dict(type='list'),
+            description=dict(type='str'),
+            disabled=dict(type='bool'),
+            enabled=dict(type='bool'),
+            limit_max_bps=dict(type='int'),
+            limit_max_bps_status=dict(type='str', choices=[F5_ACTIVATION_CHOICES]),
+            limit_max_connections=dict(type='int'),
+            limit_max_connections_status=dict(type='str', choices=[F5_ACTIVATION_CHOICES]),
+            limit_max_pps=dict(type='int'),
+            limit_max_pps_status=dict(type='str', choices=[F5_ACTIVATION_CHOICES]),
+            monitor=dict(type='str', choices=[F5_ACTIVATION_CHOICES]),
+            pool=dict(type='str'),
+            order=dict(type='int'),
+            ratio=dict(type='str', choices=[F5_ACTIVATION_CHOICES])
         )
-        else:
-            self.pool = self.mgmt_root.tm.gtm.pools.pool.load(
-                name=self.params['pool'],
-                partition=self.params['partition']
-            )
-        self.methods = {
-            'create':   self.pool.members_s.member.create,
-            'read':     self.pool.members_s.member.load,
-            'update':   self.pool.members_s.member.update,
-            'delete':   self.pool.members_s.member.delete,
-            'exists':   self.pool.members_s.member.exists
-        }
-        del self.params['pool']
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
 
-    def _exists(self):
-        keys = self.pool.members_s.get_collection()
-        for key in keys:
-            name = self.params['name']
-            if key.name == name:
-                return True
+    @property
+    def supports_check_mode(self):
+        return True
 
-        return False
-
-def main():
-    module = AnsibleModuleF5BigIpNamedObject(
-        argument_spec=BIGIP_GTM_POOL_MEMBER_ARGS,
-        supports_check_mode=False,
-        mutually_exclusive=[
+    @property
+    def mutually_exclusive(self):
+        return [
             ['disabled', 'enabled']
         ]
-    )
+
+
+class F5BigIpGtmPoolMember(F5BigIpNamedObject):
+    def _set_crud_methods(self):
+        if isinstance(self._api.tm.gtm.pools, OrganizingCollection):
+            pool = self._api.tm.gtm.pools.a_s.a.load(**self._get_resource_id_from_path(self._params['pool']))
+        else:
+            pool = self._api.tm.gtm.pools.pool.load(**self._get_resource_id_from_path(self._params['pool']))
+        self._methods = {
+            'create': pool.members_s.member.create,
+            'read': pool.members_s.member.load,
+            'update': pool.members_s.member.update,
+            'delete': pool.members_s.member.delete,
+            'exists': pool.members_s.member.exists
+        }
+        del self._params['pool']
+
+
+def main():
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode,
+                           mutually_exclusive=params.mutually_exclusive)
 
     try:
-        obj = F5BigIpGtmPoolMember(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpGtmPoolMember(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

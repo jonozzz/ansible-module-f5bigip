@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,10 +33,11 @@ author:
 options:
     app_service:
         description:
-            - Specifies the name of the application service to which the monitor belongs
+            - Specifies the name of the application service to which the monitor belongs.
     debug:
         description:
-            - Specifies whether the monitor sends error messages and additional information to a log file created and labeled specifically for this monitor.
+            - Specifies whether the monitor sends error messages and additional information to a log file created and
+              labeled specifically for this monitor.
         default: no
         choices: ['no', 'yes']
     defaults_from:
@@ -53,11 +55,13 @@ options:
             - Specifies a file associated with a service
     interval:
         description:
-            - Specifies, in seconds, the frequency at which the system issues the monitor check when either the resource is down or the status of the resource is unknown.
+            - Specifies, in seconds, the frequency at which the system issues the monitor check when either the resource
+              is down or the status of the resource is unknown.
         default: 10
     manual_resume:
         description:
-            - Specifies whether the system automatically changes the status of a resource to up at the next successful monitor check.
+            - Specifies whether the system automatically changes the status of a resource to up at the next successful
+              monitor check.
         default: disabled
         choices: ['disabled', 'enabled']
     name:
@@ -70,13 +74,13 @@ options:
         default: Common
     password:
         description:
-            - Specifies the password if the monitored target requires authentication
+            - Specifies the password if the monitored target requires authentication.
     server:
         description:
-            - Specifies the NetBIOS name of the SMB/CIFS server for which this monitor checks for availability
+            - Specifies the NetBIOS name of the SMB/CIFS server for which this monitor checks for availability.
     service:
         description:
-            - Specifies a specific service on the SMB/CIFS for which you want to verify availability
+            - Specifies a specific service on the SMB/CIFS for which you want to verify availability.
     state:
         description:
             - Specifies the state of the component on the BIG-IP system.
@@ -96,10 +100,9 @@ options:
         default: 0
     username:
         description:
-            - Specifies the user name if the monitored target requires authentication
-notes:
-    - Requires BIG-IP software version >= 11.6
+            - Specifies the user name if the monitored target requires authentication.
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -118,49 +121,67 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_ACTIVATION_CHOICES
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_POLAR_CHOICES
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_LTM_MONITOR_SMB_ARGS = dict(
-    app_service      =    dict(type='str'),
-    debug            =    dict(type='str', choices=F5_POLAR_CHOICES),
-    defaults_from    =    dict(type='str'),
-    description      =    dict(type='str'),
-    destination      =    dict(type='str'),
-    get              =    dict(type='str'),
-    interval         =    dict(type='int'),
-    manual_resume    =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    password         =    dict(type='str', no_log=True),
-    server           =    dict(type='str'),
-    service          =    dict(type='str'),
-    time_until_up    =    dict(type='int'),
-    timeout          =    dict(type='int'),
-    up_interval      =    dict(type='int'),
-    username         =    dict(type='str')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            app_service=dict(type='str'),
+            debug=dict(type='str', choices=F5_POLAR_CHOICES),
+            defaults_from=dict(type='str'),
+            description=dict(type='str'),
+            destination=dict(type='str'),
+            get=dict(type='str'),
+            interval=dict(type='int'),
+            manual_resume=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            password=dict(type='str', no_log=True),
+            server=dict(type='str'),
+            service=dict(type='str'),
+            time_until_up=dict(type='int'),
+            timeout=dict(type='int'),
+            up_interval=dict(type='int'),
+            username=dict(type='str')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpLtmMonitorSmb(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.ltm.monitor.smbs.smb.create,
-            'read':     self.mgmt_root.tm.ltm.monitor.smbs.smb.load,
-            'update':   self.mgmt_root.tm.ltm.monitor.smbs.smb.update,
-            'delete':   self.mgmt_root.tm.ltm.monitor.smbs.smb.delete,
-            'exists':   self.mgmt_root.tm.ltm.monitor.smbs.smb.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.ltm.monitor.smbs.smb.create,
+            'read': self._api.tm.ltm.monitor.smbs.smb.load,
+            'update': self._api.tm.ltm.monitor.smbs.smb.update,
+            'delete': self._api.tm.ltm.monitor.smbs.smb.delete,
+            'exists': self._api.tm.ltm.monitor.smbs.smb.exists
         }
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_LTM_MONITOR_SMB_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpLtmMonitorSmb(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpLtmMonitorSmb(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

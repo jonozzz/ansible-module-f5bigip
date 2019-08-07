@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,24 +26,24 @@ DOCUMENTATION = '''
 module: f5bigip_util_unix_rm
 short_description: BIG-IP util unix rm module
 description:
-    - Removes files.
+    - Removes files or directories.
 version_added: "2.4"
 author:
     - "Gabriel Fortin (@GabrielFortin)"
+    - "Eric Jacob (@erjac77)"
 options:
     path:
         description:
             - Specifies the path of the file that is to be removed.
         required: true
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
 
 EXAMPLES = '''
-- name: Remove file
+- name: Removes a file
   f5bigip_util_unix_rm:
     f5_hostname: 172.16.227.35
     f5_username: admin
@@ -53,41 +54,80 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
+stdout:
+    description: The output of the command.
+    returned: success
+    type: list
+    sample:
+        - ['...', '...']
+stdout_lines:
+    description: A list of strings, each containing one item per line from the original output.
+    returned: success
+    type: list
+    sample:
+        - [['...', '...'], ['...'], ['...']]
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import AnsibleF5Error
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpUnnamedObject
+from ansible_common_f5.utils import to_lines
 
-BIGIP_UTIL_UNIX_RM_ARGS = dict(
-    path    =   dict(type='str', required=True)
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            path=dict(type='str', required=True)
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpUtilUnixRm(F5BigIpUnnamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'remove':   self.mgmt_root.tm.util.unix_rm.exec_cmd,
+    def _set_crud_methods(self):
+        self._methods = {
+            'run': self._api.tm.util.unix_rm.exec_cmd,
         }
 
-    def remove(self):
-        has_changed = False
+    def flush(self):
+        result = dict(changed=False, stdout=list())
+
+        if self._check_mode:
+            result['changed'] = True
+            return result
 
         try:
-            self.methods['remove']('run', utilCmdArgs=self.params['path'])
-            has_changed = True 
-        except Exception:
-            raise AnsibleF5Error('Cant remove the file')
+            output = self._methods['run']('run', utilCmdArgs=self._params['path'])
+            result['changed'] = True
+        except Exception as exc:
+            err_msg = 'Cannot remove the file.'
+            err_msg += ' The error message was "{0}".'.format(str(exc))
+            raise AnsibleF5Error(err_msg)
 
-        return { 'changed': has_changed }
+        if hasattr(output, 'commandResult'):
+            result['stdout'].append(str(output.commandResult))
+        result['stdout_lines'] = list(to_lines(result['stdout']))
+
+        return result
+
 
 def main():
-    module = AnsibleModuleF5BigIpUnnamedObject(argument_spec=BIGIP_UTIL_UNIX_RM_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpUtilUnixRm(check_mode=module.supports_check_mode, **module.params)
-        result = obj.remove()
+        obj = F5BigIpUtilUnixRm(check_mode=module.check_mode, **module.params)
+        result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

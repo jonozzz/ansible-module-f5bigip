@@ -7,8 +7,6 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     filepathname: "{{ key_filepathname }}"
-    state: present
-  delegate_to: localhost
   register: result
 
 - name: Upload SYS Crypto Key
@@ -23,10 +21,10 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ key_name }}"
+    partition: "{{ bigip_partition }}"
     command: install
     from_local_file: "{{ key_path }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Install SYS Crypto Key from local file
@@ -41,10 +39,10 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ key_name }}"
+    partition: "{{ bigip_partition }}"
     command: install
     from_local_file: "{{ key_path }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Install SYS Crypto Key from local file (idempotent)
@@ -59,8 +57,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ key_name }}"
+    partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete SYS Crypto Key
@@ -75,8 +73,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ key_name }}"
+    partition: "{{ bigip_partition }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create SYS Crypto Key
@@ -91,8 +89,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ key_name }}"
+    partition: "{{ bigip_partition }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create SYS Crypto Key (idempotent)
@@ -107,8 +105,6 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     filepathname: "{{ cert_filepathname }}"
-    state: present
-  delegate_to: localhost
   register: result
 
 - name: Upload SYS Crypto Cert
@@ -123,10 +119,10 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ cert_name }}"
+    partition: "{{ bigip_partition }}"
     command: install
     from_local_file: "{{ cert_path }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Install SYS Crypto Cert from local file
@@ -141,10 +137,10 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ cert_name }}"
+    partition: "{{ bigip_partition }}"
     command: install
     from_local_file: "{{ cert_path }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Install SYS Crypto Cert from local file (idempotent)
@@ -159,8 +155,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ cert_name }}"
+    partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete SYS Crypto Cert
@@ -175,6 +171,7 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ cert_name }}"
+    partition: "{{ bigip_partition }}"
     key: "{{ key_name }}"
     common_name: "{{ common_name }}"
     city: "{{ city }}"
@@ -184,7 +181,6 @@
     organization: "{{ org }}"
     ou: "{{ ou }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create SYS Crypto Cert
@@ -199,6 +195,7 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ cert_name }}"
+    partition: "{{ bigip_partition }}"
     key: "{{ key_name }}"
     common_name: "{{ common_name }}"
     city: "{{ city }}"
@@ -208,7 +205,6 @@
     organization: "{{ org }}"
     ou: "{{ ou }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create SYS Crypto Cert (idempotent)
@@ -223,8 +219,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ cert_name }}"
+    partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete SYS Crypto Cert
@@ -239,8 +235,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ cert_name }}"
+    partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete SYS Crypto Cert (idempotent)
@@ -255,8 +251,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ key_name }}"
+    partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete SYS Crypto Key
@@ -271,8 +267,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ key_name }}"
+    partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete SYS Crypto Key (idempotent)

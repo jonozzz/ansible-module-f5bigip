@@ -7,9 +7,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ trust_domain_name }}"
-    ca_devices: []
+    ca_devices: "{{ trust_domain_ca_devices_default }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Remove self device from CM Trust Domain
@@ -25,9 +24,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ trust_domain_name }}"
-    ca_devices: []
+    ca_devices: "{{ trust_domain_ca_devices_default }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Remove self device from CM Trust Domain (idempotent)
@@ -42,9 +40,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ trust_domain_name }}"
-    ca_devices: ["{{ device_name}}"]
+    ca_devices: "{{ trust_domain_ca_devices }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Add self device to CM Trust Domain
@@ -59,9 +56,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ trust_domain_name }}"
-    ca_devices: ["{{ device_name}}"]
+    ca_devices: "{{ trust_domain_ca_devices }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Add self device to CM Trust Domain (idempotent)

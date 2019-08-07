@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +26,7 @@ DOCUMENTATION = '''
 module: f5bigip_net_arp
 short_description: BIG-IP net arp module
 description:
-    - You can use the arp component to add entries to or delete entries from the ARP table.
+    - Manages entries in the Address Resolution Protocol (ARP) table.
 version_added: "2.4"
 author:
     - "Gabriel Fortin (@GabrielFortin)"
@@ -54,9 +55,8 @@ options:
             - Specifies the state of the component on the BIG-IP system.
         default: present
         choices: ['absent', 'present']
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -76,37 +76,53 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_NET_ARP_ARGS = dict(
-    description     =   dict(type='str'),
-    ip_address      =   dict(type='str'),
-    mac_address     =   dict(type='str')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            description=dict(type='str'),
+            ip_address=dict(type='str'),
+            mac_address=dict(type='str')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpNetArp(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.net.arps.arp.create,
-            'read':     self.mgmt_root.tm.net.arps.arp.load,
-            'update':   self.mgmt_root.tm.net.arps.arp.update,
-            'delete':   self.mgmt_root.tm.net.arps.arp.delete,
-            'exists':   self.mgmt_root.tm.net.arps.arp.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.net.arps.arp.create,
+            'read': self._api.tm.net.arps.arp.load,
+            'update': self._api.tm.net.arps.arp.update,
+            'delete': self._api.tm.net.arps.arp.delete,
+            'exists': self._api.tm.net.arps.arp.exists
         }
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_NET_ARP_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpNetArp(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpNetArp(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

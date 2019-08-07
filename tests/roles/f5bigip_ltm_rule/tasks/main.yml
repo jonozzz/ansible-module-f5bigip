@@ -11,7 +11,6 @@
     definition: "{{ rule_definition }}"
     ignore_verification: "{{ rule_ignore_verification }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create LTM Rule
@@ -19,25 +18,23 @@
     that:
       - result|changed
 
-# Not idempotent!!
-#- name: Create LTM Rule (idempotent)
-#  f5bigip_ltm_rule:
-#    f5_hostname: "{{ bigip_host }}"
-#    f5_username: "{{ bigip_username }}"
-#    f5_password: "{{ bigip_password }}"
-#    f5_port: "{{ bigip_port }}"
-#    name: "{{ rule_name }}"
-#    partition: "{{ bigip_partition }}"
-#    definition: "{{ rule_definition }}"
-#    ignore_verification: "{{ rule_ignore_verification }}"
-#    state: present
-#  delegate_to: localhost
-#  register: result
-#
-#- name: Assert Create LTM Rule (idempotent)
-#  assert:
-#    that:
-#      - not result|changed
+- name: Create LTM Rule (idempotent)
+  f5bigip_ltm_rule:
+    f5_hostname: "{{ bigip_host }}"
+    f5_username: "{{ bigip_username }}"
+    f5_password: "{{ bigip_password }}"
+    f5_port: "{{ bigip_port }}"
+    name: "{{ rule_name }}"
+    partition: "{{ bigip_partition }}"
+    definition: "{{ rule_definition }}"
+    ignore_verification: "{{ rule_ignore_verification }}"
+    state: present
+  register: result
+
+- name: Assert Create LTM Rule (idempotent)
+  assert:
+    that:
+      - not result|changed
 
 - name: Delete LTM Rule
   f5bigip_ltm_rule:
@@ -48,7 +45,6 @@
     name: "{{ rule_name }}"
     partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete LTM Rule
@@ -65,7 +61,6 @@
     name: "{{ rule_name }}"
     partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete LTM Rule (idempotent)

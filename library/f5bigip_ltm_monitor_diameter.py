@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,14 +49,17 @@ options:
             - Specifies descriptive text that identifies the component.
     host_ip_address:
         description:
-            - Specifies the IP address of the sender of the Diameter message for the Diameter protocol peer discovery feature.
+            - Specifies the IP address of the sender of the Diameter message for the Diameter protocol peer discovery
+              feature.
     interval:
         description:
-            - Specifies, in seconds, the frequency at which the system issues the monitor check when either the resource is down or the status of the resource is unknown.
+            - Specifies, in seconds, the frequency at which the system issues the monitor check when either the resource
+              is down or the status of the resource is unknown.
         default: 10
     manual_resume:
         description:
-            - Specifies whether the system automatically changes the status of a resource to up at the next successful monitor check.
+            - Specifies whether the system automatically changes the status of a resource to up at the next successful
+              monitor check.
         default: disabled
         choices: ['enabled', 'disabled']
     name:
@@ -96,20 +100,21 @@ options:
         default: 0
     vendor_id:
         description:
-            - Specifies the IANA SMI Network Management Private Enterprise Code assigned to the vendor of the Diameter application.
+            - Specifies the IANA SMI Network Management Private Enterprise Code assigned to the vendor of the Diameter
+              application.
         default: 3375
     vendor_specific_acct_application_id:
         description:
             - Specifies Specifies the ID of the vendor-specific accounting portion of a Diameter application.
     vendor_specific_auth_application_id:
         description:
-            - Specifies the ID of the vendor-specific authentication and authorization portion of a Diameter application.
+            - Specifies the ID of the vendor-specific authentication and authorization portion of a Diameter
+              application.
     vendor_specific_vendor_id:
         description:
             - Specifies the ID of a vendor-specific Diameter application.
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -128,52 +133,69 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_ACTIVATION_CHOICES
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_LTM_MONITOR_DIAMETER_ARGS = dict(
-    acct_application_id                     =   dict(type='int'),
-    app_service                             =   dict(type='str'),
-    auth_application_id                     =   dict(type='int'),
-    defaults_from                           =   dict(type='str'),
-    description                             =   dict(type='str'),
-    host_ip_address                         =   dict(type='str'),
-    interval                                =   dict(type='int'),
-    manual_resume                           =   dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    origin_host                             =   dict(type='str'),
-    origin_realm                            =   dict(type='str'),
-    product_name                            =   dict(type='str'),
-    time_until_up                           =   dict(type='int'),
-    timeout                                 =   dict(type='int'),
-    up_interval                             =   dict(type='int'),
-    vendor_id                               =   dict(type='int'),
-    vendor_specific_acct_application_id     =   dict(type='int'),
-    vendor_specific_auth_application_id     =   dict(type='int'),
-    vendor_specific_vendor_id               =   dict(type='int')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            acct_application_id=dict(type='int'),
+            app_service=dict(type='str'),
+            auth_application_id=dict(type='int'),
+            defaults_from=dict(type='str'),
+            description=dict(type='str'),
+            host_ip_address=dict(type='str'),
+            interval=dict(type='int'),
+            manual_resume=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            origin_host=dict(type='str'),
+            origin_realm=dict(type='str'),
+            product_name=dict(type='str'),
+            time_until_up=dict(type='int'),
+            timeout=dict(type='int'),
+            up_interval=dict(type='int'),
+            vendor_id=dict(type='int'),
+            vendor_specific_acct_application_id=dict(type='int'),
+            vendor_specific_auth_application_id=dict(type='int'),
+            vendor_specific_vendor_id=dict(type='int')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpLtmMonitorDiameter(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.ltm.monitor.diameters.diameter.create,
-            'read':     self.mgmt_root.tm.ltm.monitor.diameters.diameter.load,
-            'update':   self.mgmt_root.tm.ltm.monitor.diameters.diameter.update,
-            'delete':   self.mgmt_root.tm.ltm.monitor.diameters.diameter.delete,
-            'exists':   self.mgmt_root.tm.ltm.monitor.diameters.diameter.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.ltm.monitor.diameters.diameter.create,
+            'read': self._api.tm.ltm.monitor.diameters.diameter.load,
+            'update': self._api.tm.ltm.monitor.diameters.diameter.update,
+            'delete': self._api.tm.ltm.monitor.diameters.diameter.delete,
+            'exists': self._api.tm.ltm.monitor.diameters.diameter.exists
         }
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_LTM_MONITOR_DIAMETER_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpLtmMonitorDiameter(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpLtmMonitorDiameter(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

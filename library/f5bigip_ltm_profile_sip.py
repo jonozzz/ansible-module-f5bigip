@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,7 +41,8 @@ options:
             - Specifies the name of the application service to which the object belongs.
     community:
         description:
-            - Specifies the community to which you want to assign the virtual server that you associate with this profile.
+            - Specifies the community to which you want to assign the virtual server that you associate with this
+              profile.
     defaults_from:
         description:
             - Specifies the profile that you want to use as the parent profile.
@@ -64,7 +66,8 @@ options:
         choices: ['no', 'yes']
     insert_record_route_header:
         description:
-            - Enables or disables the insertion of a Record-Route header, which indicates the next hop for the following SIP request messages.
+            - Enables or disables the insertion of a Record-Route header, which indicates the next hop for the following
+              SIP request messages.
         default: disabled
         choices: ['disabled', 'enabled']
     insert_via_header:
@@ -84,11 +87,13 @@ options:
         default: 6
     max_registrations:
         description:
-            - Indicates the maximum number of registrations, the maximum allowable REGISTER messages can be recorded that the BIG-IP system accepts.
+            - Indicates the maximum number of registrations, the maximum allowable REGISTER messages can be recorded
+              that the BIG-IP system accepts.
         default: 100
     max_sessions_per_registration:
         description:
-            - Indicates the maximum number of calls or sessions can be made by a user for a single registration that the BIG-IP system accepts.
+            - Indicates the maximum number of calls or sessions can be made by a user for a single registration that the
+              BIG-IP system accepts.
         default: 50
     max_size:
         description:
@@ -137,9 +142,8 @@ options:
     user_via_header:
         description:
             - Enables or disables the insertion of a Via header specified by a system administrator.
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -158,57 +162,75 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_ACTIVATION_CHOICES
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_POLAR_CHOICES
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_LTM_PROFILE_SIP_ARGS = dict(
-    alg_enable                       =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    app_service                      =    dict(type='str'),
-    community                        =    dict(type='str'),
-    defaults_from                    =    dict(type='str'),
-    description                      =    dict(type='str'),
-    dialog_aware                     =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    dialog_establishment_timeout     =    dict(type='int'),
-    enable_sip_firewall              =    dict(type='str', choices=F5_POLAR_CHOICES),
-    insert_record_route_header       =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    insert_via_header                =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    log_profile                      =    dict(type='str'),
-    log_publisher                    =    dict(type='str'),
-    max_media_sessions               =    dict(type='int'),
-    max_registrations                =    dict(type='int'),
-    max_sessions_per_registration    =    dict(type='int'),
-    max_size                         =    dict(type='int'),
-    registration_timeout             =    dict(type='int'),
-    rtp_proxy_style                  =    dict(type='str', choices=['symmetric', 'restricted-by-ip-address', 'any-location']),
-    secure_via_header                =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    security                         =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    sip_session_timeout              =    dict(type='int'),
-    terminate_on_bye                 =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    user_via_header                  =    dict(type='str')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            alg_enable=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            app_service=dict(type='str'),
+            community=dict(type='str'),
+            defaults_from=dict(type='str'),
+            description=dict(type='str'),
+            dialog_aware=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            dialog_establishment_timeout=dict(type='int'),
+            enable_sip_firewall=dict(type='str', choices=F5_POLAR_CHOICES),
+            insert_record_route_header=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            insert_via_header=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            log_profile=dict(type='str'),
+            log_publisher=dict(type='str'),
+            max_media_sessions=dict(type='int'),
+            max_registrations=dict(type='int'),
+            max_sessions_per_registration=dict(type='int'),
+            max_size=dict(type='int'),
+            registration_timeout=dict(type='int'),
+            rtp_proxy_style=dict(type='str', choices=['symmetric', 'restricted-by-ip-address', 'any-location']),
+            secure_via_header=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            security=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            sip_session_timeout=dict(type='int'),
+            terminate_on_bye=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            user_via_header=dict(type='str')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpLtmProfileSip(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.ltm.profile.sips.sip.create,
-            'read':     self.mgmt_root.tm.ltm.profile.sips.sip.load,
-            'update':   self.mgmt_root.tm.ltm.profile.sips.sip.update,
-            'delete':   self.mgmt_root.tm.ltm.profile.sips.sip.delete,
-            'exists':   self.mgmt_root.tm.ltm.profile.sips.sip.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.ltm.profile.sips.sip.create,
+            'read': self._api.tm.ltm.profile.sips.sip.load,
+            'update': self._api.tm.ltm.profile.sips.sip.update,
+            'delete': self._api.tm.ltm.profile.sips.sip.delete,
+            'exists': self._api.tm.ltm.profile.sips.sip.exists
         }
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_LTM_PROFILE_SIP_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpLtmProfileSip(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpLtmProfileSip(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

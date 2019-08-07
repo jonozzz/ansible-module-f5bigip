@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,7 +43,8 @@ options:
             - Specifies the name of the database with which the monitor attempts to communicate.
     debug:
         description:
-            - Specifies whether the monitor sends error messages and additional information to a log file created and labeled specifically for this monitor.
+            - Specifies whether the monitor sends error messages and additional information to a log file created and
+              labeled specifically for this monitor.
         default: no
         choices: ['no', 'yes']
     defaults_from:
@@ -57,11 +59,13 @@ options:
             - Specifies the IP address and service port of the resource that is the destination of this monitor.
     interval:
         description:
-            - Specifies, in seconds, the frequency at which the system issues the monitor check when either the resource is down or the status of the resource is unknown.
+            - Specifies, in seconds, the frequency at which the system issues the monitor check when either the resource
+              is down or the status of the resource is unknown.
         default: 30
     manual_resume:
         description:
-            - Specifies whether the system automatically changes the status of a resource to up at the next successful monitor check.
+            - Specifies whether the system automatically changes the status of a resource to up at the next successful
+              monitor check.
         default: disabled
         choices: ['disabled', 'enabled']
     name:
@@ -86,7 +90,8 @@ options:
             - Specifies the row in the database where the system expects the specified Receive String to be located.
     send:
         description:
-            - Specifies the SQL query that the monitor sends to the target database, for example, SELECT count(*) FROM mytable.
+            - Specifies the SQL query that the monitor sends to the target database, for example, SELECT count(*) FROM
+              mytable.
     state:
         description:
             - Specifies the state of the component on the BIG-IP system.
@@ -107,9 +112,8 @@ options:
     username:
         description:
             - Specifies the username, if the monitored target requires authentication.
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -128,52 +132,70 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_ACTIVATION_CHOICES
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_POLAR_CHOICES
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_LTM_MONITOR_MSSQL_ARGS = dict(
-    app_service     =   dict(type='str'),
-    count           =   dict(type='int'),
-    database        =   dict(type='str'),
-    debug           =   dict(type='str', choices=F5_POLAR_CHOICES),
-    defaults_from   =   dict(type='str'),
-    description     =   dict(type='str'),
-    destination     =   dict(type='str'),
-    interval        =   dict(type='int'),
-    manual_resume   =   dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    password        =   dict(type='str', no_log=True),
-    recv            =   dict(type='str'),
-    recv_column     =   dict(type='str'),
-    recv_row        =   dict(type='str'),
-    send            =   dict(type='str'),
-    time_until_up   =   dict(type='int'),
-    timeout         =   dict(type='int'),
-    up_interval     =   dict(type='int'),
-    username        =   dict(type='str')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            app_service=dict(type='str'),
+            count=dict(type='int'),
+            database=dict(type='str'),
+            debug=dict(type='str', choices=F5_POLAR_CHOICES),
+            defaults_from=dict(type='str'),
+            description=dict(type='str'),
+            destination=dict(type='str'),
+            interval=dict(type='int'),
+            manual_resume=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            password=dict(type='str', no_log=True),
+            recv=dict(type='str'),
+            recv_column=dict(type='str'),
+            recv_row=dict(type='str'),
+            send=dict(type='str'),
+            time_until_up=dict(type='int'),
+            timeout=dict(type='int'),
+            up_interval=dict(type='int'),
+            username=dict(type='str')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpLtmMonitorMssql(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.ltm.monitor.mssqls.mssql.create,
-            'read':     self.mgmt_root.tm.ltm.monitor.mssqls.mssql.load,
-            'update':   self.mgmt_root.tm.ltm.monitor.mssqls.mssql.update,
-            'delete':   self.mgmt_root.tm.ltm.monitor.mssqls.mssql.delete,
-            'exists':   self.mgmt_root.tm.ltm.monitor.mssqls.mssql.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.ltm.monitor.mssqls.mssql.create,
+            'read': self._api.tm.ltm.monitor.mssqls.mssql.load,
+            'update': self._api.tm.ltm.monitor.mssqls.mssql.update,
+            'delete': self._api.tm.ltm.monitor.mssqls.mssql.delete,
+            'exists': self._api.tm.ltm.monitor.mssqls.mssql.exists
         }
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_LTM_MONITOR_MSSQL_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpLtmMonitorMssql(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpLtmMonitorMssql(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

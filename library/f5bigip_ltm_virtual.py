@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,16 +39,18 @@ options:
     all:
         description:
             - Specifies that you want to modify all of the existing components of the specified type.
-        choices: [true, false]
+        type: bool
     app_service:
         description:
             - Specifies the application service that the object belongs to.
     auth:
         description:
-            - Specifies a list of authentication profile names, separated by spaces, that the virtual server uses to manage authentication.
+            - Specifies a list of authentication profile names, separated by spaces, that the virtual server uses to
+              manage authentication.
     auto_lasthop:
         description:
-            - Allows the BIG-IP system to track the source MAC address of incoming connections and return traffic from pools to the source MAC address, regardless of the routing table.
+            - Allows the BIG-IP system to track the source MAC address of incoming connections and return traffic from
+              pools to the source MAC address, regardless of the routing table.
         default: default
         choices: ['default', 'enabled', 'disabled']
     cmp_enabled:
@@ -72,18 +75,20 @@ options:
         description:
             - Specifies the state of the virtual server.
         default: false
-        choices: [true, false]
+        type: bool
     enabled:
         description:
             - Specifies the state of the virtual server.
         default: true
-        choices: [true, false]
+        type: bool
     fallback_persistence:
         description:
-            - Specifies a fallback persistence profile for the virtual server to use when the default persistence profile is not available.
+            - Specifies a fallback persistence profile for the virtual server to use when the default persistence
+              profile is not available.
     flow_eviction_policy:
         description:
-            - Specifies a flow eviction policy for the virtual server to use, to select which flows to terminate when the number of connections approaches the connection limit on the virtual server.
+            - Specifies a flow eviction policy for the virtual server to use, to select which flows to terminate when
+              the number of connections approaches the connection limit on the virtual server.
     fw_enforced_policy:
         description:
             - Specifies an enforced firewall policy.
@@ -95,23 +100,27 @@ options:
             - Specifies a score that is associated with the virtual server.
     http_class:
         description:
-            - Specifies a list of HTTP class profiles, separated by spaces, with which the virtual server works to increase the speed at which the virtual server processes HTTP requests.
+            - Specifies a list of HTTP class profiles, separated by spaces, with which the virtual server works to
+              increase the speed at which the virtual server processes HTTP requests.
     ip_forward:
         description:
-            - Specifies a virtual server that has no pool members to load balance, but instead, forwards the packet directly to the destination IP address specified in the client request.
+            - Specifies a virtual server that has no pool members to load balance, but instead, forwards the packet
+              directly to the destination IP address specified in the client request.
     ip_protocol:
         description:
             - Specifies the IP protocol for which you want the virtual server to direct traffic.
         default: any
     internal:
         description:
-            - Specifies an internal virtual server that handles requests for a parent virtual server, such as content adaptation.
+            - Specifies an internal virtual server that handles requests for a parent virtual server, such as content
+              adaptation.
     l2_forward:
         description:
             - Specifies a virtual server that shares the same IP address as a node in an associated VLAN.
     last_hop_pool:
         description:
-            - Specifies the name of the last hop pool that you want the virtual server to use to direct reply traffic to the last hop router.
+            - Specifies the name of the last hop pool that you want the virtual server to use to direct reply traffic to
+              the last hop router.
     mask:
         description:
             - Specifies the netmask for a network virtual server only.
@@ -138,15 +147,20 @@ options:
             - Specifies a default pool to which you want the virtual server to automatically direct traffic.
     rate_class:
         description:
-            - Specifies the name of an existing rate class that you want the virtual server to use to enforce a throughput policy for incoming network traffic.
+            - Specifies the name of an existing rate class that you want the virtual server to use to enforce a
+              throughput policy for incoming network traffic.
     rate_limit:
         description:
             - Specifies the maximum number of connections per second allowed for a virtual server.
     rate_limit_mode:
         description:
-            - Indicates whether the rate limit is applied per virtual object, per source address, per destination address, or some combination thereof.
+            - Indicates whether the rate limit is applied per virtual object, per source address, per destination
+              address, or some combination thereof.
         default: object
-        choices: ['destination', 'object', 'object-destination', 'object-source', 'object-source-destination', 'source', 'source-destination']
+        choices: [
+            'destination', 'object', 'object-destination', 'object-source', 'object-source-destination', 'source',
+            'source-destination'
+        ]
     rate_limit_dst_mask:
         description:
             - Specifies a mask, in bits, to be applied to the destination address as part of the rate limiting.
@@ -157,11 +171,12 @@ options:
         default: 0
     related_rules:
         description:
-            - Specifies a list of iRules, that customize the behavior of secondary channels (for instance the data channel on FTP) opened on behalf of the virtual server.
+            - Specifies a list of iRules, that customize the behavior of secondary channels (for instance the data
+              channel on FTP) opened on behalf of the virtual server.
     reject:
         description:
             - Specifies that the BIG-IP system rejects any traffic destined for the virtual server IP address.
-        choices: [true, false]
+        type: bool
     rules:
         description:
             - Specifies a list of iRules, that customize the virtual server to direct and manage traffic.
@@ -170,7 +185,16 @@ options:
             - Specifies an IP address or network from which the virtual server will accept traffic.
     source_address_translation:
         description:
-            - Specifies the type of source address translation enabled for the virtual server as well as the pool that the source address translation will use.
+            - Specifies the type of source address translation enabled for the listener as well as the pool that the
+              source address translation will use.
+        suboptions:
+            pool:
+                description:
+                    - Specifies the name of a SNAT pool used by the specified listener.
+            type:
+                description:
+                    - Specifies the type of source address translation associated with the specified listener.
+                choices: ['automap', 'lsn', 'none', 'snat']
     source_port:
         description:
             - Specifies whether the system preserves the source port of the connection.
@@ -196,15 +220,14 @@ options:
         description:
             - Disables the virtual server on the VLANs specified in the vlans option.
         default: true
-        choices: [true, false]
+        type: bool
     vlans_enabled:
         description:
             - Enables the virtual server on the VLANs specified in the vlans option.
         default: false
-        choices: [true, false]
-notes:
-    - Requires BIG-IP software version >= 11.6
+        type: bool
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -224,90 +247,110 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_ACTIVATION_CHOICES
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_POLAR_CHOICES
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_LTM_VIRTUAL_ARGS = dict(
-    all                         =    dict(type='bool'),
-    address_status              =    dict(type='str', choices=F5_POLAR_CHOICES),
-    app_service                 =    dict(type='str'),
-    auth                        =    dict(type='list'),
-    auto_lasthop                =    dict(type='str', choices=['default', 'enabled', 'disabled']),
-    #clone_pools                 =    dict(type='list'),
-    cmp_enabled                 =    dict(type='str', choices=F5_POLAR_CHOICES),
-    connection_limit            =    dict(type='int'),
-    description                 =    dict(type='str'),
-    destination                 =    dict(type='str'),
-    dhcp_relay                  =    dict(type='bool'),
-    disabled                    =    dict(type='bool'),
-    enabled                     =    dict(type='bool'),
-    fallback_persistence        =    dict(type='str'),
-    flow_eviction_policy        =    dict(type='str'),
-    fw_enforced_policy          =    dict(type='str'),
-    #fw_rules                    =    dict(type='list'),
-    fw_staged_policy            =    dict(type='list'),
-    gtm_score                   =    dict(type='int'),
-    http_class                  =    dict(type='str'),
-    ip_forward                  =    dict(type='bool'),
-    ip_protocol                 =    dict(type='str'),
-    internal                    =    dict(type='bool'),
-    l2_forward                  =    dict(type='bool'),
-    last_hop_pool               =    dict(type='str'),
-    #metadata                    =    dict(type='list'),
-    mask                        =    dict(type='str'),
-    mirror                      =    dict(type='str', choices=['disabled', 'enabled', 'none']),
-    nat64                       =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    persist                     =    dict(type='list'),
-    pool                        =    dict(type='str'),
-    rate_class                  =    dict(type='str'),
-    rate_limit                  =    dict(type='int'),
-    rate_limit_mode             =    dict(type='str', choices=['destination', 'object', 'object-destination', 'object-source', 'object-source-destination', 'source', 'source-destination']),
-    rate_limit_dst_mask         =    dict(type='int'),
-    rate_limit_src_mask         =    dict(type='int'),
-    related_rules               =    dict(type='str'),
-    reject                      =    dict(type='bool'),
-    rules                       =    dict(type='list'),
-    source                      =    dict(type='str'),
-    source_address_translation  =    dict(type='dict'),
-    source_port                 =    dict(type='str', choices=['change', 'preserve', 'preserve-strict']),
-    traffic_classes             =    dict(type='list'),
-    translate_address           =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    translate_port              =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    vlans                       =    dict(type='list'),
-    vlans_disabled              =    dict(type='bool'),
-    vlans_enabled               =    dict(type='bool')
-)
 
-class F5BigIpLtmVirtual(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.ltm.virtuals.virtual.create,
-            'read':     self.mgmt_root.tm.ltm.virtuals.virtual.load,
-            'update':   self.mgmt_root.tm.ltm.virtuals.virtual.update,
-            'delete':   self.mgmt_root.tm.ltm.virtuals.virtual.delete,
-            'exists':   self.mgmt_root.tm.ltm.virtuals.virtual.exists
-        }
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            all=dict(type='bool'),
+            address_status=dict(type='str', choices=F5_POLAR_CHOICES),
+            app_service=dict(type='str'),
+            auth=dict(type='list'),
+            auto_lasthop=dict(type='str', choices=['default', 'enabled', 'disabled']),
+            # clone_pools=dict(type='list'),
+            cmp_enabled=dict(type='str', choices=F5_POLAR_CHOICES),
+            connection_limit=dict(type='int'),
+            description=dict(type='str'),
+            destination=dict(type='str'),
+            dhcp_relay=dict(type='bool'),
+            disabled=dict(type='bool'),
+            enabled=dict(type='bool'),
+            fallback_persistence=dict(type='str'),
+            flow_eviction_policy=dict(type='str'),
+            fw_enforced_policy=dict(type='str'),
+            # fw_rules=dict(type='list'),
+            fw_staged_policy=dict(type='list'),
+            gtm_score=dict(type='int'),
+            http_class=dict(type='str'),
+            ip_forward=dict(type='bool'),
+            ip_protocol=dict(type='str'),
+            internal=dict(type='bool'),
+            l2_forward=dict(type='bool'),
+            last_hop_pool=dict(type='str'),
+            # metadata=dict(type='list'),
+            mask=dict(type='str'),
+            mirror=dict(type='str', choices=['disabled', 'enabled', 'none']),
+            nat64=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            persist=dict(type='list'),
+            pool=dict(type='str'),
+            rate_class=dict(type='str'),
+            rate_limit=dict(type='int'),
+            rate_limit_mode=dict(type='str', choices=['destination', 'object', 'object-destination', 'object-source',
+                                                      'object-source-destination', 'source', 'source-destination']),
+            rate_limit_dst_mask=dict(type='int'),
+            rate_limit_src_mask=dict(type='int'),
+            related_rules=dict(type='str'),
+            reject=dict(type='bool'),
+            rules=dict(type='list'),
+            source=dict(type='str'),
+            source_address_translation=dict(type='dict'),
+            source_port=dict(type='str', choices=['change', 'preserve', 'preserve-strict']),
+            traffic_classes=dict(type='list'),
+            translate_address=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            translate_port=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            vlans=dict(type='list'),
+            vlans_disabled=dict(type='bool'),
+            vlans_enabled=dict(type='bool')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
 
-def main():
-    module = AnsibleModuleF5BigIpNamedObject(
-        argument_spec=BIGIP_LTM_VIRTUAL_ARGS,
-        supports_check_mode=False,
-        mutually_exclusive=[
+    @property
+    def supports_check_mode(self):
+        return True
+
+    @property
+    def mutually_exclusive(self):
+        return [
             ['dhcp_relay', 'ip_forward', 'l2_forward', 'reject'],
             ['enabled', 'disabled'],
             ['vlans_enabled', 'vlans_disabled']
         ]
-    )
+
+
+class F5BigIpLtmVirtual(F5BigIpNamedObject):
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.ltm.virtuals.virtual.create,
+            'read': self._api.tm.ltm.virtuals.virtual.load,
+            'update': self._api.tm.ltm.virtuals.virtual.update,
+            'delete': self._api.tm.ltm.virtuals.virtual.delete,
+            'exists': self._api.tm.ltm.virtuals.virtual.exists
+        }
+
+
+def main():
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode,
+                           mutually_exclusive=params.mutually_exclusive)
 
     try:
-        obj = F5BigIpLtmVirtual(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpLtmVirtual(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

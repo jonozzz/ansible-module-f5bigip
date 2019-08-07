@@ -7,12 +7,10 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ datacenter_name }}"
-    partition: "{{ bigip_partition }}"
     contact: "{{ datacenter_contact }}"
     description: "{{ datacenter_description }}"
     location: "{{ datacenter_location }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create GTM Datacenter
@@ -27,12 +25,10 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ datacenter_name }}"
-    partition: "{{ bigip_partition }}"
     contact: "{{ datacenter_contact }}"
     description: "{{ datacenter_description }}"
     location: "{{ datacenter_location }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create GTM Datacenter (idempotent)
@@ -47,9 +43,7 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ datacenter_name }}"
-    partition: "{{ bigip_partition }}"
     description: "new {{ datacenter_description }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Modify GTM Datacenter description
@@ -64,9 +58,7 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ datacenter_name }}"
-    partition: "{{ bigip_partition }}"
     description: "new {{ datacenter_description }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Modify GTM Datacenter description (idempotent)
@@ -81,9 +73,7 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ datacenter_name }}"
-    partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete GTM Datacenter
@@ -98,9 +88,7 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ datacenter_name }}"
-    partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete GTM Datacenter (idempotent)

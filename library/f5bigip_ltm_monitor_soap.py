@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,10 +33,11 @@ author:
 options:
     app_service:
         description:
-            - Specifies the name of the application service to which the monitor belongs
+            - Specifies the name of the application service to which the monitor belongs.
     debug:
         description:
-            - Specifies whether the monitor sends error messages and additional information to a log file created and labeled specifically for this monitor.
+            - Specifies whether the monitor sends error messages and additional information to a log file created and
+              labeled specifically for this monitor.
         default: no
         choices: ['no', 'yes']
     defaults_from:
@@ -55,11 +57,13 @@ options:
         choices: ['no', 'yes']
     interval:
         description:
-            - Specifies, in seconds, the frequency at which the system issues the monitor check when either the resource is down or the status of the resource is unknown.
+            - Specifies, in seconds, the frequency at which the system issues the monitor check when either the resource
+              is down or the status of the resource is unknown.
         default: 5
     manual_resume:
         description:
-            - Specifies whether the system automatically changes the status of a resource to up at the next successful monitor check.
+            - Specifies whether the system automatically changes the status of a resource to up at the next successful
+              monitor check.
         default: disabled
         choices: ['disabled', 'enabled']
     method:
@@ -71,10 +75,10 @@ options:
         required: true
     namespace:
         description:
-            - Specifies the name space for the Web service you are monitoring, for example, http://example.com/
+            - Specifies the name space for the Web service you are monitoring, for example, http://example.com/.
     parameter_name:
         description:
-            - If the method has a parameter, specifies the name of that parameter
+            - If the method has a parameter, specifies the name of that parameter.
     parameter_type:
         description:
             - Specifies the parameter type.
@@ -89,7 +93,7 @@ options:
         default: Common
     password:
         description:
-            - Specifies the password if the monitored target requires authentication
+            - Specifies the password if the monitored target requires authentication.
     protocol:
         description:
             - Specifies the protocol that the monitor uses to communicate with the target, http or https.
@@ -101,7 +105,7 @@ options:
         default: bool
     return_value:
         description:
-            - Specifies the value for the returned parameter
+            - Specifies the value for the returned parameter.
     soap_action:
         description:
             - Specifies the value for the SOAPAction header.
@@ -125,13 +129,12 @@ options:
         default: 0
     url_path:
         description:
-            - Specifies the URL for the Web service that you are monitoring, for example, /services/myservice.aspx
+            - Specifies the URL for the Web service that you are monitoring, for example, /services/myservice.aspx.
     username:
         description:
-            - Specifies the user name if the monitored target requires authentication
-notes:
-    - Requires BIG-IP software version >= 11.6
+            - Specifies the user name if the monitored target requires authentication.
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -150,57 +153,75 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_ACTIVATION_CHOICES
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_POLAR_CHOICES
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_LTM_MONITOR_SOAP_ARGS = dict(
-    app_service        =    dict(type='str'),
-    debug              =    dict(type='str', choices=F5_POLAR_CHOICES),
-    defaults_from      =    dict(type='str'),
-    description        =    dict(type='str'),
-    destination        =    dict(type='str'),
-    expect_fault       =    dict(type='str', choices=F5_POLAR_CHOICES),
-    interval           =    dict(type='int'),
-    manual_resume      =    dict(type='str', choices=F5_ACTIVATION_CHOICES),
-    method             =    dict(type='str'),
-    namespace          =    dict(type='str'),
-    parameter_name     =    dict(type='str'),
-    parameter_type     =    dict(type='str', choices=['bool', 'int', 'long', 'string']),
-    parameter_value    =    dict(type='str'),
-    password           =    dict(type='str', no_log=True),
-    protocol           =    dict(type='str', choices=['http', 'https']),
-    return_type        =    dict(type='str', choices=['bool', 'char', 'double', 'int', 'long', 'short', 'string']),
-    return_value       =    dict(type='str'),
-    soap_action        =    dict(type='str'),
-    time_until_up      =    dict(type='int'),
-    timeout            =    dict(type='int'),
-    up_interval        =    dict(type='int'),
-    url_path           =    dict(type='str'),
-    username           =    dict(type='str')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            app_service=dict(type='str'),
+            debug=dict(type='str', choices=F5_POLAR_CHOICES),
+            defaults_from=dict(type='str'),
+            description=dict(type='str'),
+            destination=dict(type='str'),
+            expect_fault=dict(type='str', choices=F5_POLAR_CHOICES),
+            interval=dict(type='int'),
+            manual_resume=dict(type='str', choices=F5_ACTIVATION_CHOICES),
+            method=dict(type='str'),
+            namespace=dict(type='str'),
+            parameter_name=dict(type='str'),
+            parameter_type=dict(type='str', choices=['bool', 'int', 'long', 'string']),
+            parameter_value=dict(type='str'),
+            password=dict(type='str', no_log=True),
+            protocol=dict(type='str', choices=['http', 'https']),
+            return_type=dict(type='str', choices=['bool', 'char', 'double', 'int', 'long', 'short', 'string']),
+            return_value=dict(type='str'),
+            soap_action=dict(type='str'),
+            time_until_up=dict(type='int'),
+            timeout=dict(type='int'),
+            up_interval=dict(type='int'),
+            url_path=dict(type='str'),
+            username=dict(type='str')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpLtmMonitorSoap(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.ltm.monitor.soaps.soap.create,
-            'read':     self.mgmt_root.tm.ltm.monitor.soaps.soap.load,
-            'update':   self.mgmt_root.tm.ltm.monitor.soaps.soap.update,
-            'delete':   self.mgmt_root.tm.ltm.monitor.soaps.soap.delete,
-            'exists':   self.mgmt_root.tm.ltm.monitor.soaps.soap.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.ltm.monitor.soaps.soap.create,
+            'read': self._api.tm.ltm.monitor.soaps.soap.load,
+            'update': self._api.tm.ltm.monitor.soaps.soap.update,
+            'delete': self._api.tm.ltm.monitor.soaps.soap.delete,
+            'exists': self._api.tm.ltm.monitor.soaps.soap.exists
         }
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_LTM_MONITOR_SOAP_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpLtmMonitorSoap(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpLtmMonitorSoap(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

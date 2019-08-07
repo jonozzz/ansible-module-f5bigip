@@ -7,14 +7,12 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ performance_name }}"
-  delegate_to: localhost
   register: result
+
+- name: Display SYS Performance all-stats
+  debug: var=result.stdout_lines
 
 - name: Assert Get SYS Performance all-stats
   assert:
     that:
-      - result|changed
-
-- name: Display SYS Performance all-stats
-  debug:
-    msg: "{{ result }}"
+      - result|succeeded

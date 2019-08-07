@@ -7,10 +7,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ region_name }}"
-    partition: "{{ bigip_partition }}"
     description: "{{ region_description }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create GTM Region
@@ -25,10 +23,8 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ region_name }}"
-    partition: "{{ bigip_partition }}"
     description: "{{ region_description }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create GTM Region (idempotent)
@@ -43,9 +39,7 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ region_name }}"
-    partition: "{{ bigip_partition }}"
     description: "new {{ region_description }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Modify GTM Region description
@@ -60,9 +54,7 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ region_name }}"
-    partition: "{{ bigip_partition }}"
     description: "new {{ region_description }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Modify GTM Region description (idempotent)
@@ -77,9 +69,7 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ region_name }}"
-    partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete GTM Region
@@ -94,9 +84,7 @@
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     name: "{{ region_name }}"
-    partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete GTM Region (idempotent)

@@ -1,19 +1,22 @@
 # ANSIBLE MODULE FOR F5 BIG-IP
 
-An Ansible module to perform specific operational and configuration tasks on F5 BIG-IP systems. It is based on the f5-sdk (iControl REST).
+An Ansible module to perform specific operational and configuration tasks on F5 BIG-IP systems.
+
+* Over 190 components supported (and counting).
+* Easy installation. Installing the module is quite simple and requires only two steps.
 
 ## REQUIREMENTS
 
 * Ansible >= 2.4.0 (ansible)
-* F5 Python SDK >= 3.0.3 (f5-sdk)
-* F5 Common Utility Module for Ansible >= 0.5.0 ([ansible-common-f5](https://github.com/erjac77/ansible-common-f5))
+* F5 Common Utility Module for Ansible >= 1.0.0 ([ansible-common-f5](https://github.com/erjac77/ansible-common-f5))
+* F5 Python SDK >= 3.0.15 (f5-sdk)
 
 ## INSTALLATION
 
-### 1) Install the F5 Common Utility Module for Ansible and all its dependencies (ansible, f5-sdk, etc.)
+### 1) Install the F5 Common Utility Module for Ansible and all its dependencies (ansible, f5-sdk, six, etc.)
 
 ```shell
-pip install git+git://github.com/erjac77/ansible-common-f5.git#egg=ansible-common-f5
+pip install git+https://github.com/erjac77/ansible-common-f5.git#egg=ansible-common-f5
 ```
 
 ### 2) Install the F5 BIG-IP Role from Ansible Galaxy
@@ -22,11 +25,11 @@ pip install git+git://github.com/erjac77/ansible-common-f5.git#egg=ansible-commo
 ansible-galaxy install erjac77.module-f5bigip
 ```
 
+For alternative installation methods, see the [Wiki](https://github.com/erjac77/ansible-module-f5bigip/wiki/Alternative-Installation-Methods).
+
 ## EXAMPLE PLAYBOOK
 
 ```yaml
----
-
 - hosts: bigips
   connection: local
   roles:
@@ -45,8 +48,9 @@ ansible-galaxy install erjac77.module-f5bigip
         description: My Pool
         load_balancing_mode: least-connections-members
         state: present
-      delegate_to: localhost
 ```
+
+You'll find more examples in the [Wiki](https://github.com/erjac77/ansible-module-f5bigip/wiki/Playbook-Examples).
 
 ## LICENSE
 

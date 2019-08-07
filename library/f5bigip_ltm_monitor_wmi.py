@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,10 +34,10 @@ options:
     agent:
         description:
             - Displays the agent for the monitor.
-        default: Mozilla/4.0 (compatible: MSIE 5.0; Windows NT)
+        default: 'Mozilla/4.0 (compatible: MSIE 5.0; Windows NT)'
     app_service:
         description:
-            - Specifies the name of the application service to which the monitor belongs
+            - Specifies the name of the application service to which the monitor belongs.
     command:
         description:
             - Specifies the command that the system uses to obtain the metrics from the resource.
@@ -54,7 +55,7 @@ options:
     metrics:
         description:
             - Specifies the performance metrics that the commands collect from the target.
-        default: LoadPercentage, DiskUsage, PhysicalMemoryUsage:1.5, VirtualMemoryUsage:2.0
+        default: 'LoadPercentage, DiskUsage, PhysicalMemoryUsage:1.5, VirtualMemoryUsage:2.0'
     name:
         description:
             - Specifies a unique name for the component.
@@ -65,7 +66,7 @@ options:
         default: Common
     password:
         description:
-            - Specifies the password if the monitored target requires authentication
+            - Specifies the password if the monitored target requires authentication.
     state:
         description:
             - Specifies the state of the component on the BIG-IP system.
@@ -85,10 +86,9 @@ options:
         default: /scripts/f5Isapi.dll
     username:
         description:
-            - Specifies the user name if the monitored target requires authentication
-notes:
-    - Requires BIG-IP software version >= 11.6
+            - Specifies the user name if the monitored target requires authentication.
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -107,46 +107,62 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_LTM_MONITOR_WMI_ARGS = dict(
-    agent            =    dict(type='str'),
-    app_service      =    dict(type='str'),
-    command          =    dict(type='str'),
-    defaults_from    =    dict(type='str'),
-    description      =    dict(type='str'),
-    interval         =    dict(type='int'),
-    metrics          =    dict(type='str'),
-    password         =    dict(type='str', no_log=True),
-    time_until_up    =    dict(type='int'),
-    timeout          =    dict(type='int'),
-    url              =    dict(type='str'),
-    username         =    dict(type='str')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            agent=dict(type='str'),
+            app_service=dict(type='str'),
+            command=dict(type='str'),
+            defaults_from=dict(type='str'),
+            description=dict(type='str'),
+            interval=dict(type='int'),
+            metrics=dict(type='str'),
+            password=dict(type='str', no_log=True),
+            time_until_up=dict(type='int'),
+            timeout=dict(type='int'),
+            url=dict(type='str'),
+            username=dict(type='str')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpLtmMonitorWmi(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.ltm.monitor.wmis.wmi.create,
-            'read':     self.mgmt_root.tm.ltm.monitor.wmis.wmi.load,
-            'update':   self.mgmt_root.tm.ltm.monitor.wmis.wmi.update,
-            'delete':   self.mgmt_root.tm.ltm.monitor.wmis.wmi.delete,
-            'exists':   self.mgmt_root.tm.ltm.monitor.wmis.wmi.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.ltm.monitor.wmis.wmi.create,
+            'read': self._api.tm.ltm.monitor.wmis.wmi.load,
+            'update': self._api.tm.ltm.monitor.wmis.wmi.update,
+            'delete': self._api.tm.ltm.monitor.wmis.wmi.delete,
+            'exists': self._api.tm.ltm.monitor.wmis.wmi.exists
         }
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_LTM_MONITOR_WMI_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpLtmMonitorWmi(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpLtmMonitorWmi(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

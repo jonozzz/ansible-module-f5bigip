@@ -9,13 +9,13 @@
     name: "{{ pool_name }}"
     partition: "{{ bigip_partition }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create LTM Pool
   assert:
     that:
       - result|changed
+  ignore_errors: yes
 
 - name: Create LTM Snatpool
   f5bigip_ltm_snatpool:
@@ -27,13 +27,19 @@
     partition: "{{ bigip_partition }}"
     members: "{{ snatpool_members }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create LTM Snatpool
   assert:
     that:
       - result|changed
+  ignore_errors: yes
+
+- name: Create LTM Policies
+  include_tasks: policy.yml
+  with_items: "{{ virtual_policies }}"
+  loop_control:
+    loop_var: policy
 
 - name: Create LTM Virtual Server
   f5bigip_ltm_virtual:
@@ -51,7 +57,6 @@
     vlans: "{{ virtual_vlans }}"
     vlans_enabled: "{{ virtual_vlans_enabled }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create LTM Virtual Server
@@ -59,7 +64,6 @@
     that:
       - result|changed
 
-# Not idempotent!!
 - name: Create LTM Virtual Server (idempotent)
   f5bigip_ltm_virtual:
     f5_hostname: "{{ bigip_host }}"
@@ -76,7 +80,6 @@
     vlans: "{{ virtual_vlans }}"
     vlans_enabled: "{{ virtual_vlans_enabled }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Create LTM Virtual Server (idempotent)
@@ -94,10 +97,9 @@
     name: "{{ item.name }}"
     partition: "{{ bigip_partition }}"
     context: "{{ item.context }}"
-    virtual: "{{ virtual_name }}"
+    virtual: "/{{ bigip_partition }}/{{ virtual_name }}"
     state: present
   with_items: "{{ virtual_profiles }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Add LTM Virtual Server Profiles
@@ -114,13 +116,48 @@
     name: "{{ item.name }}"
     partition: "{{ bigip_partition }}"
     context: "{{ item.context }}"
-    virtual: "{{ virtual_name }}"
+    virtual: "/{{ bigip_partition }}/{{ virtual_name }}"
     state: present
   with_items: "{{ virtual_profiles }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Add LTM Virtual Server Profiles (idempotent)
+  assert:
+    that:
+      - not result|changed
+
+- name: Add LTM Virtual Server Policies
+  f5bigip_ltm_virtual_policy:
+    f5_hostname: "{{ bigip_host }}"
+    f5_username: "{{ bigip_username }}"
+    f5_password: "{{ bigip_password }}"
+    f5_port: "{{ bigip_port }}"
+    name: "{{ item.name }}"
+    partition: "{{ bigip_partition }}"
+    virtual: "/{{ bigip_partition }}/{{ virtual_name }}"
+    state: present
+  with_items: "{{ virtual_policies }}"
+  register: result
+
+- name: Assert Add LTM Virtual Server Policies
+  assert:
+    that:
+      - result|changed
+
+- name: Add LTM Virtual Server Policies (idempotent)
+  f5bigip_ltm_virtual_policy:
+    f5_hostname: "{{ bigip_host }}"
+    f5_username: "{{ bigip_username }}"
+    f5_password: "{{ bigip_password }}"
+    f5_port: "{{ bigip_port }}"
+    name: "{{ item.name }}"
+    partition: "{{ bigip_partition }}"
+    virtual: "/{{ bigip_partition }}/{{ virtual_name }}"
+    state: present
+  with_items: "{{ virtual_policies }}"
+  register: result
+
+- name: Assert Add LTM Virtual Server Policies (idempotent)
   assert:
     that:
       - not result|changed
@@ -136,13 +173,68 @@
     persist: "{{ virtual_persists }}"
     fallback_persistence: "{{ virtual_fallback_persistence }}"
     state: present
-  delegate_to: localhost
   register: result
 
 - name: Assert Add LTM Virtual Server Persistence
   assert:
     that:
       - result|changed
+
+- name: Add LTM Virtual Server Persistence (idempotent)
+  f5bigip_ltm_virtual:
+    f5_hostname: "{{ bigip_host }}"
+    f5_username: "{{ bigip_username }}"
+    f5_password: "{{ bigip_password }}"
+    f5_port: "{{ bigip_port }}"
+    name: "{{ virtual_name }}"
+    partition: "{{ bigip_partition }}"
+    persist: "{{ virtual_persists }}"
+    fallback_persistence: "{{ virtual_fallback_persistence }}"
+    state: present
+  register: result
+
+- name: Assert Add LTM Virtual Server Persistence (idempotent)
+  assert:
+    that:
+      - not result|changed
+
+- name: Add LTM Virtual Server Rules
+  f5bigip_ltm_virtual:
+    f5_hostname: "{{ bigip_host }}"
+    f5_username: "{{ bigip_username }}"
+    f5_password: "{{ bigip_password }}"
+    f5_port: "{{ bigip_port }}"
+    name: "{{ virtual_name }}"
+    partition: "{{ bigip_partition }}"
+    rules:
+      - "{{ item.name }}"
+    state: present
+  with_items: "{{ virtual_rules }}"
+  register: result
+
+- name: Assert Add LTM Virtual Server Rules
+  assert:
+    that:
+      - result|changed
+
+- name: Add LTM Virtual Server Rules (idempotent)
+  f5bigip_ltm_virtual:
+    f5_hostname: "{{ bigip_host }}"
+    f5_username: "{{ bigip_username }}"
+    f5_password: "{{ bigip_password }}"
+    f5_port: "{{ bigip_port }}"
+    name: "{{ virtual_name }}"
+    partition: "{{ bigip_partition }}"
+    rules:
+      - "{{ item.name }}"
+    state: present
+  with_items: "{{ virtual_rules }}"
+  register: result
+
+- name: Assert Add LTM Virtual Server Rules (idempotent)
+  assert:
+    that:
+      - not result|changed
 
 - name: Delete LTM Virtual Server
   f5bigip_ltm_virtual:
@@ -153,7 +245,6 @@
     name: "{{ virtual_name }}"
     partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete LTM Virtual Server
@@ -170,7 +261,6 @@
     name: "{{ virtual_name }}"
     partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete LTM Virtual Server (idempotent)
@@ -187,7 +277,6 @@
     name: "{{ pool_name }}"
     partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete LTM Pool
@@ -204,10 +293,26 @@
     name: "{{ snatpool_name }}"
     partition: "{{ bigip_partition }}"
     state: absent
-  delegate_to: localhost
   register: result
 
 - name: Assert Delete LTM Snatpool
+  assert:
+    that:
+      - result|changed
+
+- name: Delete LTM Policies
+  f5bigip_ltm_policy:
+    f5_hostname: "{{ bigip_host }}"
+    f5_username: "{{ bigip_username }}"
+    f5_password: "{{ bigip_password }}"
+    f5_port: "{{ bigip_port }}"
+    name: "{{ item.name }}"
+    partition: "{{ bigip_partition }}"
+    state: absent
+  with_items: "{{ virtual_policies }}"
+  register: result
+
+- name: Assert Delete LTM Policies
   assert:
     that:
       - result|changed

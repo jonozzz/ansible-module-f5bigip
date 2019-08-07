@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,56 +30,83 @@ description:
 version_added: "2.4"
 author:
     - "Gabriel Fortin (@GabrielFortin)"
-notes:
-    - Requires BIG-IP software version >= 12.0.0
 requirements:
-    - ansible-common-f5
-    - f5-sdk
-options:
-notes:
-    - Requires BIG-IP software version >= 11.6
-requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
 
 EXAMPLES = '''
-- name: Get Shared Bigip failover state
+- name: Get Shared bigip failover state
   f5bigip_shared_bigip_failover_state:
     f5_hostname: 172.16.227.35
     f5_username: admin
     f5_password: admin
     f5_port: 443
   delegate_to: localhost
+  register: failover_status_resp
+
+- name: Display the failover status of the device
+  debug:
+    msg: "Failover Status: {{ failover_status_resp.bigip_failover_state.failoverState }}"
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import AnsibleF5Error
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpUnnamedObject
 
-BIGIP_SHARED_BIGIP_FAILOVER_STATE_ARGS = dict(
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict()
+        argument_spec.update(F5_PROVIDER_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpSharedBigipFailoverState(F5BigIpUnnamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'read':     self.mgmt_root.tm.shared.bigip_failover_state.load
+    def _set_crud_methods(self):
+        self._methods = {
+            'read': self._api.tm.shared.bigip_failover_state.load
         }
 
-    def get_failover_state(self):
-        return { 'bigip_failover_state': self.methods['read']().attrs }
+    def flush(self):
+        result = dict(changed=False)
+
+        try:
+            failover_state = self._methods['read']()
+        except Exception:
+            raise AnsibleF5Error("Cannot retrieve BIG-IP failover state information.")
+
+        result.update(
+            failover_state=failover_state.failoverState,
+            is_enabled=failover_state.isEnabled,
+            last_update_micros=failover_state.lastUpdateMicros,
+            next_poll_time=failover_state.nextPollTime,
+            poll_cycle_period_millis=failover_state.pollCyclePeriodMillis
+        )
+
+        return result
+
 
 def main():
-    module = AnsibleModuleF5BigIpUnnamedObject(argument_spec=BIGIP_SHARED_BIGIP_FAILOVER_STATE_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpSharedBigipFailoverState(check_mode=module.supports_check_mode, **module.params)
-        result = obj.get_failover_state()
+        obj = F5BigIpSharedBigipFailoverState(check_mode=module.check_mode, **module.params)
+        result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

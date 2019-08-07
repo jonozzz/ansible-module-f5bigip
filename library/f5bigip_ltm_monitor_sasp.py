@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +33,7 @@ author:
 options:
     app_service:
         description:
-            - Specifies the name of the application service to which the monitor belongs
+            - Specifies the name of the application service to which the monitor belongs.
     defaults_from:
         description:
             - Specifies the name of the monitor from which you want your custom monitor to inherit settings.
@@ -46,7 +47,8 @@ options:
         default: auto
     mode:
         description:
-            - Specifies whether the load balancer should send Get Weight Request messages (pull) or receive Send Weights messages (push) from the GWM.
+            - Specifies whether the load balancer should send Get Weight Request messages (pull) or receive Send Weights
+              messages (push) from the GWM.
         default: pull
         choices: ['pull', 'push']
     name:
@@ -85,9 +87,8 @@ options:
         description:
             - Specifies the number of seconds the target has in which to respond to the monitor request.
         default: 100
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -106,45 +107,61 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_LTM_MONITOR_SASP_ARGS = dict(
-    app_service          =    dict(type='str'),
-    defaults_from        =    dict(type='str'),
-    description          =    dict(type='str'),
-    interval             =    dict(type='int'),
-    mode                 =    dict(type='str', choices=['pull', 'push']),
-    primary_address      =    dict(type='str'),
-    protocol             =    dict(type='str', choices=['tcp', 'udp']),
-    secondary_address    =    dict(type='str'),
-    service              =    dict(type='int'),
-    time_until_up        =    dict(type='int'),
-    timeout              =    dict(type='int')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            app_service=dict(type='str'),
+            defaults_from=dict(type='str'),
+            description=dict(type='str'),
+            interval=dict(type='int'),
+            mode=dict(type='str', choices=['pull', 'push']),
+            primary_address=dict(type='str'),
+            protocol=dict(type='str', choices=['tcp', 'udp']),
+            secondary_address=dict(type='str'),
+            service=dict(type='int'),
+            time_until_up=dict(type='int'),
+            timeout=dict(type='int')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpLtmMonitorSasp(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.ltm.monitor.sasps.sasp.create,
-            'read':     self.mgmt_root.tm.ltm.monitor.sasps.sasp.load,
-            'update':   self.mgmt_root.tm.ltm.monitor.sasps.sasp.update,
-            'delete':   self.mgmt_root.tm.ltm.monitor.sasps.sasp.delete,
-            'exists':   self.mgmt_root.tm.ltm.monitor.sasps.sasp.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.ltm.monitor.sasps.sasp.create,
+            'read': self._api.tm.ltm.monitor.sasps.sasp.load,
+            'update': self._api.tm.ltm.monitor.sasps.sasp.update,
+            'delete': self._api.tm.ltm.monitor.sasps.sasp.delete,
+            'exists': self._api.tm.ltm.monitor.sasps.sasp.exists
         }
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_LTM_MONITOR_SASP_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpLtmMonitorSasp(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpLtmMonitorSasp(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

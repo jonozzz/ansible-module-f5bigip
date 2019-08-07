@@ -6,14 +6,13 @@
     f5_username: "{{ bigip_username }}"
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
-  delegate_to: localhost
   register: result
 
 - name: Display Shared Licensing status
   debug: 
-    msg: "status: {{ result.licensing.status }}"
+    msg: "Licensing Status: {{ result.status }}"
 
 - name: Assert Shared Licensing status
   assert:
     that:
-      - result.licensing.status == 'LICENSING_NO_DATA'
+      - result.status == 'LICENSING_NO_DATA'

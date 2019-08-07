@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,9 +38,8 @@ options:
     value:
         description:
             - Specifies the value to which you want to set the specified database entry.
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -56,36 +56,39 @@ EXAMPLES = '''
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import AnsibleF5Error
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_SYS_DB_ARGS = dict(
-    #reset_to_default    =   dict(type='bool'),
-    value               =   dict(type='str')
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            # reset_to_default=dict(type='bool'),
+            value=dict(type='str')
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        del argument_spec['partition']
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpSysDb(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'read':     self.mgmt_root.tm.sys.dbs.db.load,
-            'update':   self.mgmt_root.tm.sys.dbs.db.update,
-            'exists':   self.mgmt_root.tm.sys.dbs.db.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'read': self._api.tm.sys.dbs.db.load,
+            'update': self._api.tm.sys.dbs.db.update,
+            'exists': self._api.tm.sys.dbs.db.exists
         }
-        del self.params['partition']
-
-    def _exists(self):
-        if self._read():
-            return True
-        else:
-            return False
-
-    def _read(self):
-        return self.methods['read'](
-            name=self.params['name']
-        )
 
     def _create(self):
         raise AnsibleF5Error("%s does not support create" % self.__class__.__name__)
@@ -101,15 +104,18 @@ class F5BigIpSysDb(F5BigIpNamedObject):
         result.update(dict(changed=has_changed))
         return result
 
+
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_SYS_DB_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpSysDb(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpSysDb(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

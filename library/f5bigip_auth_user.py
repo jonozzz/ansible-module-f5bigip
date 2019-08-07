@@ -1,6 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
-# Copyright 2016-2017, Eric Jacob <erjac77@gmail.com>
+# Copyright 2016-2018, Eric Jacob <erjac77@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,10 +47,12 @@ options:
             - Specifies the administrative partitions to which the user currently has access.
     password:
         description:
-            - Sets the user password during creation or modification of a user account without prompting or confirmation.
+            - Sets the user password during creation or modification of a user account without prompting or
+              confirmation.
     prompt_for_password:
         description:
-            - Indicates that when the account is created or modified, the BIG-IP system prompts the administrator or user manager for both a password and a password confirmation for the account.
+            - Indicates that when the account is created or modified, the BIG-IP system prompts the administrator or
+              user manager for both a password and a password confirmation for the account.
     shell:
         description:
             - Specifies the shell to which the user has access.
@@ -59,9 +62,8 @@ options:
             - Specifies the state of the component on the BIG-IP system.
         default: present
         choices: ['absent', 'present']
-notes:
-    - Requires BIG-IP software version >= 11.6
 requirements:
+    - BIG-IP >= 12.0
     - ansible-common-f5
     - f5-sdk
 '''
@@ -74,52 +76,65 @@ EXAMPLES = '''
     f5_password: admin
     f5_port: 443
     name: user1
-    partition: Common
-    description: user 1
+    partition: Test
+    description: User 1
     partition_access:
-      - name: Common
-        role: Guest
-      - name: Test
-        role: Guest
+      - { name: Test, role: operator }
+      - { name: Common, role: guest }
     state: present
   delegate_to: localhost
 '''
 
-RETURN = '''
-'''
+RETURN = ''' # '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_common_f5.f5_bigip import *
+from ansible_common_f5.base import F5_NAMED_OBJ_ARGS
+from ansible_common_f5.base import F5_PROVIDER_ARGS
+from ansible_common_f5.bigip import F5BigIpNamedObject
 
-BIGIP_AUTH_USER_ARGS = dict(
-    description             =   dict(type='str'),
-    partition_access        =   dict(type='list'),
-    password                =   dict(type='str', no_log=True),
-    prompt_for_password     =   dict(type='str', no_log=True),
-    shell                   =   dict(type='str', choices=['bash', 'none', 'tmsh'])
-)
+
+class ModuleParams(object):
+    @property
+    def argument_spec(self):
+        argument_spec = dict(
+            description=dict(type='str'),
+            partition_access=dict(type='list'),
+            password=dict(type='str', no_log=True),
+            prompt_for_password=dict(type='str', no_log=True),
+            shell=dict(type='str', choices=['bash', 'none', 'tmsh'])
+        )
+        argument_spec.update(F5_PROVIDER_ARGS)
+        argument_spec.update(F5_NAMED_OBJ_ARGS)
+        del argument_spec['partition']
+        return argument_spec
+
+    @property
+    def supports_check_mode(self):
+        return True
+
 
 class F5BigIpAuthUser(F5BigIpNamedObject):
-    def set_crud_methods(self):
-        self.methods = {
-            'create':   self.mgmt_root.tm.auth.users.user.create,
-            'read':     self.mgmt_root.tm.auth.users.user.load,
-            'update':   self.mgmt_root.tm.auth.users.user.update,
-            'delete':   self.mgmt_root.tm.auth.users.user.delete,
-            'exists':   self.mgmt_root.tm.auth.users.user.exists
+    def _set_crud_methods(self):
+        self._methods = {
+            'create': self._api.tm.auth.users.user.create,
+            'read': self._api.tm.auth.users.user.load,
+            'update': self._api.tm.auth.users.user.update,
+            'delete': self._api.tm.auth.users.user.delete,
+            'exists': self._api.tm.auth.users.user.exists
         }
-        del self.params['partition']
-        del self.params['sub_path']
+
 
 def main():
-    module = AnsibleModuleF5BigIpNamedObject(argument_spec=BIGIP_AUTH_USER_ARGS, supports_check_mode=False)
+    params = ModuleParams()
+    module = AnsibleModule(argument_spec=params.argument_spec, supports_check_mode=params.supports_check_mode)
 
     try:
-        obj = F5BigIpAuthUser(check_mode=module.supports_check_mode, **module.params)
+        obj = F5BigIpAuthUser(check_mode=module.check_mode, **module.params)
         result = obj.flush()
         module.exit_json(**result)
     except Exception as exc:
         module.fail_json(msg=str(exc))
+
 
 if __name__ == '__main__':
     main()

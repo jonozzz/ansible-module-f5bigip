@@ -8,7 +8,6 @@
     f5_port: "{{ bigip_port }}"
     sys_contact: "{{ snmp_sys_contact }}"
     sys_location: "{{ snmp_sys_location }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Specify SYS SNMP contact and location
@@ -24,7 +23,6 @@
     f5_port: "{{ bigip_port }}"
     sys_contact: "{{ snmp_sys_contact }}"
     sys_location: "{{ snmp_sys_location }}"
-  delegate_to: localhost
   register: result
 
 - name: Specify SYS SNMP contact and location (idempotent)
@@ -32,34 +30,30 @@
     that:
       - not result|changed
 
-- name: Add SYS SNMP allowed addresses
+- name: Set SYS SNMP allowed addresses
   f5bigip_sys_snmp:
     f5_hostname: "{{ bigip_host }}"
     f5_username: "{{ bigip_username }}"
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     allowed_addresses: "{{ snmp_allowed_addresses }}"
-    state: present
-  delegate_to: localhost
   register: result
 
-- name: Assert Add SYS SNMP allowed addresses
+- name: Assert Set SYS SNMP allowed addresses
   assert:
     that:
       - result|changed
 
-- name: Add SYS SNMP allowed addresses (idempotent)
+- name: Set SYS SNMP allowed addresses (idempotent)
   f5bigip_sys_snmp:
     f5_hostname: "{{ bigip_host }}"
     f5_username: "{{ bigip_username }}"
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
     allowed_addresses: "{{ snmp_allowed_addresses }}"
-    state: present
-  delegate_to: localhost
   register: result
 
-- name: Assert Add SYS SNMP allowed addresses (idempotent)
+- name: Assert Set SYS SNMP allowed addresses (idempotent)
   assert:
     that:
       - not result|changed
@@ -75,10 +69,9 @@
     community_name: "{{ item.community_name }}"
     state: present
   with_items: "{{ snmp_communities }}"
-  delegate_to: localhost
   register: result
 
-- name: Assert Add SYS SNMP Communities
+- name: Assert Set SYS SNMP Communities
   assert:
     that:
       - result|changed
@@ -94,7 +87,6 @@
     community_name: "{{ item.community_name }}"
     state: present
   with_items: "{{ snmp_communities }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Add SYS SNMP Communities (idempotent)
@@ -116,7 +108,6 @@
     version: "{{ item.version }}"
     state: present
   with_items: "{{ snmp_traps }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Add SYS SNMP Traps
@@ -137,7 +128,6 @@
     version: "{{ item.version }}"
     state: present
   with_items: "{{ snmp_traps }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Add SYS SNMP Traps (idempotent)
@@ -154,7 +144,6 @@
     f5_port: "{{ bigip_port }}"
     sys_contact: "{{ snmp_sys_contact_default }}"
     sys_location: "{{ snmp_sys_location_default }}"
-  delegate_to: localhost
   register: result
 
 - name: Asset Change SYS SNMP contact and location to default
@@ -170,7 +159,6 @@
     f5_port: "{{ bigip_port }}"
     sys_contact: "{{ snmp_sys_contact_default }}"
     sys_location: "{{ snmp_sys_location_default }}"
-  delegate_to: localhost
   register: result
 
 - name: Asset Change SYS SNMP contact and location to default (idempotent)
@@ -178,34 +166,30 @@
     that:
       - not result|changed
 
-- name: Remove SYS SNMP allowed addresses
+- name: Clear SYS SNMP allowed addresses
   f5bigip_sys_snmp:
     f5_hostname: "{{ bigip_host }}"
     f5_username: "{{ bigip_username }}"
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
-    allowed_addresses: "{{ snmp_allowed_addresses }}"
-    state: absent
-  delegate_to: localhost
+    allowed_addresses: "{{ snmp_allowed_addresses_default }}"
   register: result
 
-- name: Assert Remove SYS SNMP allowed addresses
+- name: Assert Clear SYS SNMP allowed addresses
   assert:
     that:
       - result|changed
 
-- name: Remove SYS SNMP allowed addresses (idempotent)
+- name: Clear SYS SNMP allowed addresses (idempotent)
   f5bigip_sys_snmp:
     f5_hostname: "{{ bigip_host }}"
     f5_username: "{{ bigip_username }}"
     f5_password: "{{ bigip_password }}"
     f5_port: "{{ bigip_port }}"
-    allowed_addresses: "{{ snmp_allowed_addresses }}"
-    state: absent
-  delegate_to: localhost
+    allowed_addresses: "{{ snmp_allowed_addresses_default }}"
   register: result
 
-- name: Assert Remove SYS SNMP allowed addresses (idempotent)
+- name: Assert Clear SYS SNMP allowed addresses (idempotent)
   assert:
     that:
       - not result|changed
@@ -219,7 +203,6 @@
     name: "{{ item.name }}"
     state: absent
   with_items: "{{ snmp_traps }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Remove SYS SNMP Traps
@@ -236,7 +219,6 @@
     name: "{{ item.name }}"
     state: absent
   with_items: "{{ snmp_traps }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Remove SYS SNMP Traps (idempotent)
@@ -253,7 +235,6 @@
     name: "{{ item.name }}"
     state: absent
   with_items: "{{ snmp_communities }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Remove SYS SNMP Communities
@@ -270,7 +251,6 @@
     name: "{{ item.name }}"
     state: absent
   with_items: "{{ snmp_communities }}"
-  delegate_to: localhost
   register: result
 
 - name: Assert Remove SYS SNMP Communities (idempotent)
